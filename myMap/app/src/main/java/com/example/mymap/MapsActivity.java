@@ -51,19 +51,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final long MINIMUM_TIME_BETWEEN_UPDATES = 10000; //10s
     private static final int DEFAULT_CAMERA_ZOOM = 16;
     private float DEFAULT_CHANGE_THRESHOLD = 0.0f;
-//    private static final int DEFAULT_SHAKE_THRESHOLD = 16;
+    //    private static final int DEFAULT_SHAKE_THRESHOLD = 16;
     private static final int DEFAULT_SHAKE_THRESHOLD = -9;
     private static final int SENSOR_FREEZE_TIME = 3000;
 
-//    private static final long SENSOR_DELAY = 200000;
+    //    private static final long SENSOR_DELAY = 200000;
     private static final int SENSOR_DELAY = 10000000;
-    private static final int THRESHOLD_SAMPLE = 3;
+    private static final int THRESHOLD_SAMPLE = 50;
     private static final int TIME_THRESHOLD = 5000;
 
     private boolean islocationPermission = false;
     private boolean isFirst = true;
-    private boolean isTest = true;
-//    private boolean isTest = false;
+//    private boolean isTest = true;
+    private boolean isTest = false;
 
     private static final String TAG = "HW1";
     protected LocationManager locationManager;
@@ -94,7 +94,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         startButton.setOnClickListener(startClickListener);
         stopButton.setOnClickListener(stopClickListener);
 
-        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -164,11 +164,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         if (islocationPermission) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
                 Toast.makeText(this, "Use GPS location", Toast.LENGTH_SHORT).show();
                 provider = LocationManager.GPS_PROVIDER;
             } else {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
                 location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if (location == null) {
                     Toast.makeText(this, "Network location is Null, break", Toast.LENGTH_SHORT).show();
@@ -191,8 +211,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // LatLng currLocation = new LatLng(24.7869954, 120.9974482);
         // set near location for test
         LatLng baseLocation = new LatLng(24.7869954, 120.9974482);
-        if (isTest)
-        {
+        if (isTest) {
             baseLocation = new LatLng(25.010764927473524, 121.45534402918176);
         }
         LatLng currLocation;
@@ -201,11 +220,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (provider != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
             Location location = locationManager.getLastKnownLocation(provider);
-            currLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            Log.i(TAG, "currLocation, latitude: " + Double.toString(location.getLatitude()) +
-                    ", longitude: " + Double.toString(location.getLongitude()));
-            mMap.moveCamera(CameraUpdateFactory.zoomTo(DEFAULT_CAMERA_ZOOM));
+            if (location != null)
+            {
+                currLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                Log.i(TAG, "currLocation, latitude: " + Double.toString(location.getLatitude()) +
+                        ", longitude: " + Double.toString(location.getLongitude()));
+                mMap.moveCamera(CameraUpdateFactory.zoomTo(DEFAULT_CAMERA_ZOOM));
+            }
         }
 
     }
@@ -403,7 +435,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             float z = event.values[2];
 
             statusTextView.setText("Y axis \t\t" + y);
-//            Log.i(TAG, "y:" + y);
+            Log.i(TAG, "y:" + y);
 
             if (y < DEFAULT_SHAKE_THRESHOLD )
             {
@@ -423,8 +455,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     tmpDate = new Date();
                 }
                 sensorValues.add((double) y);
-//                Log.i(TAG, "sensorValues.size(): "+ sensorValues.size());
-//                Log.i(TAG, "Duration: "+ (new Date().getTime() - tmpDate.getTime()));
+                Log.i(TAG, "sensorValues.size(): "+ sensorValues.size());
+                Log.i(TAG, "Duration: "+ (new Date().getTime() - tmpDate.getTime()));
 
                 if (sensorValues.size() > THRESHOLD_SAMPLE && (new Date().getTime() - tmpDate.getTime() < TIME_THRESHOLD))
                 {
